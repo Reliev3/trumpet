@@ -232,6 +232,32 @@
         .btn:active { background-color: var(--primary-dark); transform: translateY(1px); }
         .btn:disabled { background-color: #d1d5db; color: #9ca3af; }
 
+        /* Top Navigation Links */
+        .top-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-link-btn {
+            text-decoration: none;
+            color: var(--primary);
+            background-color: #eff6ff; /* Light blue tint */
+            border: 1px solid var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 99px; /* Pill shape */
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link-btn:hover, .nav-link-btn:active {
+            background-color: var(--primary);
+            color: white;
+        }
+
         /* Tablet/Desktop tweaks */
         @media (min-width: 768px) {
             main {
@@ -267,6 +293,13 @@
 
     <header>
         <h1>Trumpet Master</h1>
+        
+        <!-- Navigation Buttons -->
+        <nav class="top-nav">
+            <a href="stamp.html" class="nav-link-btn">Stamp Exercises</a>
+            <a href="Beginner_Exercises.html" class="nav-link-btn">Beginner Exercises</a>
+        </nav>
+
         <div class="controls">
             <select id="rootSelect">
                 <option value="C">C Scale</option>
@@ -328,6 +361,13 @@
             </div>
         </div>
     </main>
+
+    <footer class="page-footer">
+        <div class="external-links">
+            <a href="Beginner_Exercises.html" class="btn btn-secondary">Beginner Exercises</a>
+            <a href="stamp.html" class="btn btn-secondary">Stamp</a>
+        </div>
+    </footer>
 
     <script>
         // --- DATA ---
