@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trumpet 101: Beginner Course</title>
+    <style>
+        /* --- DESIGN SYSTEM (Inherited from Reference) --- */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --valve-rim: #d1d5db;
+            --valve-gradient: radial-gradient(circle at 30% 30%, #fff, #e5e7eb);
+            --valve-pressed: radial-gradient(circle at 30% 30%, #4b5563, #1f2937);
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        /* --- HEADER & PROGRESS --- */
+        header {
+            background: var(--card-bg);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary);
+            width: 10%;
+            transition: width 0.3s ease;
+        }
+
+        .lesson-badge {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* --- LAYOUT --- */
+        main {
+            padding: 1rem;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- LESSON TEXT --- */
+        .lesson-info {
+            text-align: center;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        
+        .lesson-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-desc {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tip-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            text-align: left;
+            width: 100%;
+        }
+
+        /* --- FINGERING VISUALS (Reused) --- */
+        .trumpet-deck {
+            position: relative;
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+            margin-top: 1rem;
+        }
+        
+        .trumpet-deck::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: -10px; right: -10px;
+            height: 12px;
+            background: inherit;
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 6px;
+        }
+
+        .valve-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .valve-label {
+            font-size: 0.75rem; color: white; margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3); font-weight: bold;
+        }
+
+        .valve {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: var(--valve-gradient);
+            border: 4px solid #9ca3af;
+            transition: transform 0.1s;
+        }
+
+        .valve.pressed {
+            background: var(--valve-pressed);
+            border-color: #374151;
+            transform: scale(0.95);
+        }
+
+        .fingering-code {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 1rem;
+            letter-spacing: 2px;
+        }
+
+        /* --- SHEET MUSIC --- */
+        .sheet-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .note-group { cursor: pointer; }
+        .note-group.active ellipse { fill: var(--primary); }
+        .note-group.active line { stroke: var(--primary); }
+        .note-group.active text { fill: var(--primary); font-weight: bold; }
+
+        /* --- NAVIGATION --- */
+        .nav-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; padding: 1rem;
+            display: grid; grid-template-columns: 1fr 2fr 1fr;
+            gap: 1rem;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+            z-index: 100;
+            align-items: center;
+        }
+
+        .btn {
+            background-color: var(--card-bg);
+            color: var(--text);
+            border: 1px solid #d1d5db;
+            padding: 0.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+        .btn:active { transform: translateY(1px); }
+
+        .step-counter { text-align: center; font-weight: bold; color: var(--text-light); }
+
+        @media (min-width: 768px) {
+            main { flex-direction: row; align-items: flex-start; padding-bottom: 2rem; }
+            .info-section { flex: 1; order: 1; }
+            .sheet-section { flex: 1.5; order: 2; }
+            .nav-footer { position: static; background: transparent; box-shadow: none; margin-top: 2rem; grid-template-columns: 1fr 1fr; width: 100%; }
+            .step-counter { display: none; } /* Show in progress bar instead on desktop */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Trumpet Beginner Path</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="lesson-badge" id="lessonBadge">Exercise 1/10</div>
+    </header>
+
+    <main>
+        <div class="card info-section">
+            <div class="lesson-info">
+                <div class="lesson-title" id="lessonTitle">Loading...</div>
+                <div class="lesson-desc" id="lessonDesc">...</div>
+                <div class="tip-box" id="lessonTip"></div>
+            </div>
+
+            <div class="trumpet-deck">
+                <div class="valve-wrapper"><span class="valve-label">1</span><div class="valve" id="valve1"></div></div>
+                <div class="valve-wrapper"><span class="valve-label">2</span><div class="valve" id="valve2"></div></div>
+                <div class="valve-wrapper"><span class="valve-label">3</span><div class="valve" id="valve3"></div></div>
+            </div>
+            <div class="fingering-code" id="fingeringText">0-0-0</div>
+        </div>
+
+        <div class="card sheet-section">
+            <div style="font-size: 0.9rem; color:#999; margin-bottom:10px;">Tap note to see fingering</div>
+            <div class="sheet-wrapper" id="sheetContainer">
+                </div>
+        </div>
+    </main>
+
+    <div class="nav-footer">
+        <button class="btn" id="prevBtn">Previous</button>
+        <div class="step-counter" id="stepCounter">1 / 10</div>
+        <button class="btn btn-primary" id="nextBtn">Next Exercise</button>
+    </div>
+
+    <script>
+        // --- DATA: 10 EXERCISES ---
+        // Notes are defined by ID: NoteName + Octave (e.g., C4)
+        const EXERCISES = [
+            {
+                id: 1,
+                title: "1. The Buzz",
+                desc: "Before playing the instrument, buzz your lips on the mouthpiece alone. Aim for a steady 'mosquito' sound.",
+                tip: "Keep corners of your mouth firm. Don't puff your cheeks!",
+                notes: [] // No notes for buzzing
+            },
+            {
+                id: 2,
+                title: "2. The Long Tone 'C'",
+                desc: "Your anchor note. Take a deep breath and play Low C (Do). Hold it for 4 full counts.",
+                tip: "Keep the airflow steady like a laser beam.",
+                notes: ["C4", "C4", "rest", "C4"]
+            },
+            {
+                id: 3,
+                title: "3. First Steps",
+                desc: "Move between Low C and D. Keep the air moving while you change valves.",
+                tip: "Kick out the 3rd valve slide for D if your trumpet has a ring.",
+                notes: ["C4", "D4", "C4", "rest"]
+            },
+            {
+                id: 4,
+                title: "4. The 'E' Climb",
+                desc: "We add the note E (Mi). Step up and step down.",
+                tip: "E uses valves 1 & 2. Listen to ensure it's in tune.",
+                notes: ["C4", "D4", "E4", "D4", "C4"]
+            },
+            {
+                id: 5,
+                title: "5. Articulation (Tonguing)",
+                desc: "Use your tongue to say 'Tu' or 'Ta' to start the note clearly. Don't stop the air!",
+                tip: "Think of your tongue like a snake striking quickly.",
+                notes: ["G4", "G4", "G4", "G4", "G4"]
+            },
+            {
+                id: 6,
+                title: "6. Gravity Check (Low G)",
+                desc: "Relax your lips to drop down to Low G. This requires warm, slow air.",
+                tip: "Drop your jaw slightly to help the note speak.",
+                notes: ["C4", "G3", "C4", "rest"]
+            },
+            {
+                id: 7,
+                title: "7. Mini Slurs",
+                desc: "Change notes *without* tonguing. Use your air speed and lip tension.",
+                tip: "C to G is a 'partial' jump. No valves change, only your lips!",
+                notes: ["C4", "G4", "C4", "rest"]
+            },
+            {
+                id: 8,
+                title: "8. The 5-Note Ladder",
+                desc: "Walk up from C to G. This is half of the Major Scale.",
+                tip: "Support your air more as you go higher.",
+                notes: ["C4", "D4", "E4", "F4", "G4"]
+            },
+            {
+                id: 9,
+                title: "9. Interval Jumps",
+                desc: "Skip over notes. This trains your ears and muscle memory.",
+                tip: "Hear the pitch in your head before you play it.",
+                notes: ["C4", "E4", "G4", "E4", "C4"]
+            },
+            {
+                id: 10,
+                title: "10. Warm Down",
+                desc: "Relax the lips after practicing. Long, low notes to massage the muscle.",
+                tip: "Play as softly as possible (pianissimo).",
+                notes: ["G4", "F4", "E4", "D4", "C4"]
+            }
+        ];
+
+        // --- TRUMPET LOGIC (Fingering Data) ---
+        const TRUMPET_DATA = {
+            "G3":  { fingering: [1, 0, 1], pos: -5, acc: "" },
+            "C4":  { fingering: [0, 0, 0], pos: -2, acc: "" },
+            "D4":  { fingering: [1, 0, 1], pos: -1, acc: "" },
+            "E4":  { fingering: [1, 2, 0], pos: 0, acc: "" },
+            "F4":  { fingering: [1, 0, 0], pos: 1, acc: "" },
+            "G4":  { fingering: [0, 0, 0], pos: 2, acc: "" },
+            "rest": { fingering: [0, 0, 0], pos: null, acc: "rest" } // Special case
+        };
+
+        // --- STATE ---
+        let currentLessonIndex = 0;
+        let activeNoteIndex = 0;
+        let currentNotes = [];
+
+        // --- CORE FUNCTIONS ---
+
+        function loadLesson(index) {
+            const lesson = EXERCISES[index];
+            
+            // 1. Update Text
+            document.getElementById('lessonTitle').textContent = lesson.title;
+            document.getElementById('lessonDesc').textContent = lesson.desc;
+            document.getElementById('lessonTip').textContent = "💡 Tip: " + lesson.tip;
+            document.getElementById('lessonBadge').textContent = `Exercise ${index + 1} / 10`;
+            document.getElementById('stepCounter').textContent = `${index + 1} / 10`;
+
+            // 2. Update Progress Bar
+            const pct = ((index + 1) / EXERCISES.length) * 100;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+
+            // 3. Update Buttons
+            document.getElementById('prevBtn').disabled = index === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            if (index === EXERCISES.length - 1) {
+                nextBtn.textContent = "Finish";
+            } else {
+                nextBtn.textContent = "Next Exercise";
+            }
+
+            // 4. Load Notes
+            activeNoteIndex = 0;
+            if (lesson.notes.length > 0) {
+                currentNotes = lesson.notes.map(id => {
+                    return { id: id, data: TRUMPET_DATA[id] };
+                });
+                drawStaff(currentNotes);
+                updateFingeringUI();
+                document.querySelector('.sheet-section').style.display = 'flex';
+                document.querySelector('.trumpet-deck').style.display = 'flex';
+                document.getElementById('fingeringText').style.display = 'block';
+            } else {
+                // Buzzing lesson (no notes)
+                document.getElementById('sheetContainer').innerHTML = '<div style="padding:40px; text-align:center; color:#ccc;">No sheet music for this step.<br>Focus on the mouthpiece.</div>';
+                document.querySelector('.trumpet-deck').style.display = 'none';
+                document.getElementById('fingeringText').style.display = 'none';
+                currentNotes = [];
+            }
+        }
+
+        function updateFingeringUI() {
+            if (currentNotes.length === 0) return;
+            
+            const noteObj = currentNotes[activeNoteIndex];
+            
+            // Handle Rest
+            if (noteObj.id === 'rest') {
+                document.getElementById('fingeringText').textContent = "REST";
+                setValves([false, false, false]);
+                return;
+            }
+
+            const fingering = noteObj.data.fingering;
+            const pressedLabels = [];
+            if(fingering[0]) pressedLabels.push("1");
+            if(fingering[1]) pressedLabels.push("2");
+            if(fingering[2]) pressedLabels.push("3");
+
+            document.getElementById('fingeringText').textContent = pressedLabels.length > 0 ? pressedLabels.join("-") : "Open (0)";
+            setValves(fingering);
+
+            // Highlight Staff
+            document.querySelectorAll('.note-group').forEach((el, idx) => {
+                if(idx === activeNoteIndex) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+        }
+
+        function setValves(arr) {
+            document.getElementById('valve1').className = `valve ${arr[0] ? 'pressed' : ''}`;
+            document.getElementById('valve2').className = `valve ${arr[1] ? 'pressed' : ''}`;
+            document.getElementById('valve3').className = `valve ${arr[2] ? 'pressed' : ''}`;
+        }
+
+        // --- SVG DRAWER (Adapted from Reference) ---
+        function drawStaff(notes) {
+            const container = document.getElementById('sheetContainer');
+            container.innerHTML = '';
+            
+            const noteWidth = 60;
+            const width = Math.max(container.clientWidth, 60 + (notes.length * noteWidth) + 30);
+            const height = 150;
+            const refY = 100; // E4 line
+            const stepY = 8;
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+
+            // Draw Lines
+            for (let i = 0; i < 5; i++) {
+                const y = refY - (i * 2 * stepY);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 10); line.setAttribute("x2", width - 10);
+                line.setAttribute("y1", y); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "#9ca3af");
+                line.setAttribute("stroke-width", "1");
+                svg.appendChild(line);
+            }
+
+            // Draw Clef
+            const clef = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            clef.setAttribute("x", 10); clef.setAttribute("y", refY + 4);
+            clef.setAttribute("font-size", "60");
+            clef.textContent = "𝄞";
+            svg.appendChild(clef);
+
+            // Draw Notes
+            notes.forEach((note, index) => {
+                const cx = 70 + (index * noteWidth);
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", `note-group ${index === 0 ? 'active' : ''}`);
+                g.setAttribute("onclick", `selectNote(${index})`);
+
+                // Hitbox
+                const hitBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                hitBox.setAttribute("x", cx - 25); hitBox.setAttribute("y", 0);
+                hitBox.setAttribute("width", 50); hitBox.setAttribute("height", height);
+                hitBox.setAttribute("fill", "transparent");
+                g.appendChild(hitBox);
+
+                if (note.id === 'rest') {
+                    // Draw Rest Symbol (Quarter rest approximation)
+                    const rest = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    rest.setAttribute("x", cx - 10);
+                    rest.setAttribute("y", refY - 10);
+                    rest.setAttribute("font-size", "35");
+                    rest.textContent = "𝄽"; 
+                    g.appendChild(rest);
+                } else {
+                    const cy = refY - (note.data.pos * stepY);
+
+                    // Ledger Lines (Low C = -2, Low G = -5)
+                    if (note.data.pos <= -2) drawLedger(g, cx, refY - (-2 * stepY));
+                    if (note.data.pos <= -4) drawLedger(g, cx, refY - (-4 * stepY));
+
+                    // Stem
+                    const stemHeight = 35;
+                    const stemDir = note.data.pos >= 4 ? -1 : 1; 
+                    const stemX = stemDir === 1 ? cx + 6 : cx - 6;
+                    const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    stem.setAttribute("x1", stemX); stem.setAttribute("x2", stemX);
+                    stem.setAttribute("y1", cy); stem.setAttribute("y2", cy - (stemHeight * stemDir));
+                    stem.setAttribute("stroke", "black"); stem.setAttribute("stroke-width", "2");
+                    g.appendChild(stem);
+
+                    // Head
+                    const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                    ellipse.setAttribute("cx", cx); ellipse.setAttribute("cy", cy);
+                    ellipse.setAttribute("rx", 7); ellipse.setAttribute("ry", 5);
+                    ellipse.setAttribute("transform", `rotate(-15 ${cx} ${cy})`);
+                    ellipse.setAttribute("fill", "black");
+                    g.appendChild(ellipse);
+
+                    // Label
+                    const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    label.setAttribute("x", cx); label.setAttribute("y", height - 10);
+                    label.setAttribute("text-anchor", "middle");
+                    label.setAttribute("font-size", "12");
+                    label.setAttribute("fill", "#666");
+                    label.textContent = note.id.replace(/\d/,''); // Remove octave number
+                    g.appendChild(label);
+                }
+
+                svg.appendChild(g);
+            });
+
+            container.appendChild(svg);
+        }
+
+        function drawLedger(group, cx, y) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", cx - 12); line.setAttribute("x2", cx + 12);
+            line.setAttribute("y1", y); line.setAttribute("y2", y);
+            line.setAttribute("stroke", "black"); line.setAttribute("stroke-width", "1");
+            group.appendChild(line);
+        }
+
+        // --- INTERACTION ---
+        function selectNote(index) {
+            activeNoteIndex = index;
+            updateFingeringUI();
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentLessonIndex < EXERCISES.length - 1) {
+                currentLessonIndex++;
+                loadLesson(currentLessonIndex);
+                window.scrollTo(0, 0);
+            }
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentLessonIndex > 0) {
+                currentLessonIndex--;
+                loadLesson(currentLessonIndex);
+                window.scrollTo(0, 0);
+            }
+        });
+
+        // Init
+        loadLesson(0);
+
+    </script>
+</body>
+</html>
