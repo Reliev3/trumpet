@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Trumpet Scale Master</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --valve-rim: #d1d5db;
+            --valve-gradient: radial-gradient(circle at 30% 30%, #fff, #e5e7eb);
+            --valve-pressed: radial-gradient(circle at 30% 30%, #4b5563, #1f2937);
+            --gold-light: #fcd34d;
+            --gold-dark: #b45309;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 80px; /* Space for sticky footer */
+        }
+
+        /* Header & Controls */
+        header {
+            background: var(--card-bg);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            color: var(--primary-dark);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 0.75rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem top 50%;
+            background-size: 0.65rem auto;
+        }
+
+        /* Main Content Layout */
+        main {
+            padding: 1rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Fingering Visualizer (Trumpet) */
+        .note-display {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .fingering-code {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+        }
+
+        .trumpet-deck {
+            position: relative;
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .trumpet-deck::before {
+            /* Tubing simulation */
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            right: -10px;
+            height: 12px;
+            background: inherit;
+            transform: translateY(-50%);
+            z-index: 0;
+            border-radius: 6px;
+        }
+
+        .valve-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .valve-label {
+            font-size: 0.75rem;
+            color: white;
+            margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            font-weight: bold;
+        }
+
+        .valve {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--valve-gradient);
+            border: 4px solid #9ca3af;
+            box-shadow: inset 0 -4px 4px rgba(0,0,0,0.1);
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .valve.pressed {
+            background: var(--valve-pressed);
+            border-color: #374151;
+            transform: scale(0.95);
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        /* Sheet Music */
+        .sheet-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px; /* Scrollbar space */
+        }
+
+        .sheet-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        svg.staff {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .note-group { cursor: pointer; }
+        .note-group rect { fill: transparent; } /* Hit area */
+        .note-group.active ellipse { fill: var(--primary); }
+        .note-group.active line { stroke: var(--primary); }
+        .note-group.active text { fill: var(--primary); font-weight: bold; }
+
+        /* Sticky Footer Navigation */
+        .nav-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .btn:active { background-color: var(--primary-dark); transform: translateY(1px); }
+        .btn:disabled { background-color: #d1d5db; color: #9ca3af; }
+
+        /* Tablet/Desktop tweaks */
+        @media (min-width: 768px) {
+            main {
+                flex-direction: row;
+                align-items: flex-start;
+                padding-bottom: 2rem;
+            }
+            
+            body { padding-bottom: 0; }
+            
+            .nav-footer {
+                position: static;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                margin-top: 1rem;
+                width: 100%;
+            }
+
+            .fingering-section {
+                flex: 1;
+                order: 2; /* Sheet music on left, fingering on right for desktop */
+            }
+
+            .sheet-section {
+                flex: 2;
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Trumpet Master</h1>
+        <div class="controls">
+            <select id="rootSelect">
+                <option value="C">C Scale</option>
+                <option value="C#">C# / Db</option>
+                <option value="D">D Scale</option>
+                <option value="Eb">Eb Scale</option>
+                <option value="E">E Scale</option>
+                <option value="F">F Scale</option>
+                <option value="F#">F# / Gb</option>
+                <option value="G">G Scale</option>
+                <option value="Ab">Ab Scale</option>
+                <option value="A">A Scale</option>
+                <option value="Bb">Bb Scale</option>
+                <option value="B">B Scale</option>
+            </select>
+
+            <select id="scaleSelect">
+                <option value="major">Major</option>
+                <option value="natural_minor">Natural Minor</option>
+                <option value="harmonic_minor">Harmonic Minor</option>
+                <option value="chromatic">Chromatic</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <!-- Fingering Card (Top on Mobile) -->
+        <div class="card fingering-section">
+            <div class="note-display" id="currentNoteDisplay">C</div>
+            <div class="fingering-code" id="fingeringText">0-0-0</div>
+            
+            <div class="trumpet-deck">
+                <div class="valve-wrapper">
+                    <span class="valve-label">1</span>
+                    <div class="valve" id="valve1"></div>
+                </div>
+                <div class="valve-wrapper">
+                    <span class="valve-label">2</span>
+                    <div class="valve" id="valve2"></div>
+                </div>
+                <div class="valve-wrapper">
+                    <span class="valve-label">3</span>
+                    <div class="valve" id="valve3"></div>
+                </div>
+            </div>
+            
+            <!-- Desktop Nav placement (Hidden on mobile via CSS if needed, but we reuse the footer logic for simplicity in this single file) -->
+            <div class="nav-footer desktop-only-hook">
+                <button class="btn" id="prevBtn">Previous</button>
+                <button class="btn" id="nextBtn">Next</button>
+            </div>
+        </div>
+
+        <!-- Sheet Music Card -->
+        <div class="card sheet-section">
+            <div class="sheet-label">Sheet Music (Tap note to select)</div>
+            <div class="sheet-wrapper" id="sheetContainer">
+                <!-- SVG injected via JS -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- DATA ---
+        // Format: [valve1, valve2, valve3], pos (0=E4 bottom line), acc
+        const TRUMPET_DATA = {
+            "F#3": { fingering: [1, 2, 3], pos: -6, acc: "#" },
+            "G3":  { fingering: [1, 0, 1], pos: -5, acc: "" }, // Fixed 1-3
+            "Ab3": { fingering: [0, 2, 3], pos: -4, acc: "b" },
+            "A3":  { fingering: [1, 2, 0], pos: -4, acc: "" },
+            "Bb3": { fingering: [1, 0, 0], pos: -3, acc: "b" },
+            "B3":  { fingering: [0, 2, 0], pos: -3, acc: "" },
+            "C4":  { fingering: [0, 0, 0], pos: -2, acc: "" },
+            "C#4": { fingering: [1, 2, 3], pos: -2, acc: "#" },
+            "Db4": { fingering: [1, 2, 3], pos: -2, acc: "b" },
+            "D4":  { fingering: [1, 0, 1], pos: -1, acc: "" }, // Fixed 1-3
+            "Eb4": { fingering: [0, 2, 3], pos: 0, acc: "b" },
+            "D#4": { fingering: [0, 2, 3], pos: 0, acc: "#" },
+            "E4":  { fingering: [1, 2, 0], pos: 0, acc: "" },
+            "F4":  { fingering: [1, 0, 0], pos: 1, acc: "" },
+            "F#4": { fingering: [0, 2, 0], pos: 1, acc: "#" },
+            "Gb4": { fingering: [0, 2, 0], pos: 1, acc: "b" },
+            "G4":  { fingering: [0, 0, 0], pos: 2, acc: "" },
+            "Ab4": { fingering: [0, 2, 3], pos: 3, acc: "b" },
+            "G#4": { fingering: [0, 2, 3], pos: 3, acc: "#" },
+            "A4":  { fingering: [1, 2, 0], pos: 3, acc: "" },
+            "Bb4": { fingering: [1, 0, 0], pos: 4, acc: "b" },
+            "A#4": { fingering: [1, 0, 0], pos: 4, acc: "#" },
+            "B4":  { fingering: [0, 2, 0], pos: 4, acc: "" },
+            "C5":  { fingering: [0, 0, 0], pos: 5, acc: "" },
+            "C#5": { fingering: [1, 2, 0], pos: 5, acc: "#" },
+            "Db5": { fingering: [1, 2, 0], pos: 5, acc: "b" },
+            "D5":  { fingering: [1, 0, 0], pos: 6, acc: "" },
+            "Eb5": { fingering: [0, 2, 0], pos: 7, acc: "b" },
+            "E5":  { fingering: [0, 0, 0], pos: 7, acc: "" },
+            "F5":  { fingering: [1, 0, 0], pos: 8, acc: "" },
+            "F#5": { fingering: [0, 2, 0], pos: 8, acc: "#" },
+            "Gb5": { fingering: [0, 2, 0], pos: 8, acc: "b" },
+            "G5":  { fingering: [0, 0, 0], pos: 9, acc: "" },
+            "Ab5": { fingering: [0, 2, 3], pos: 10, acc: "b" },
+            "A5":  { fingering: [1, 2, 0], pos: 10, acc: "" },
+            "Bb5": { fingering: [1, 0, 0], pos: 11, acc: "b" },
+            "B5":  { fingering: [0, 2, 0], pos: 11, acc: "" },
+            "C6":  { fingering: [0, 0, 0], pos: 12, acc: "" }
+        };
+
+        const NOTES_ORDER = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+        const FLAT_EQUIV = {"Db":"C#", "Gb":"F#", "D#":"Eb", "G#":"Ab", "A#":"Bb"};
+
+        const SCALES = {
+            major: [0, 2, 4, 5, 7, 9, 11, 12],
+            natural_minor: [0, 2, 3, 5, 7, 8, 10, 12],
+            harmonic_minor: [0, 2, 3, 5, 7, 8, 11, 12],
+            chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        };
+
+        // --- STATE & LOGIC ---
+        let currentScaleNotes = [];
+        let activeIndex = 0;
+
+        function getNoteIndex(noteName) {
+            let cleanName = noteName;
+            if(FLAT_EQUIV[noteName]) cleanName = FLAT_EQUIV[noteName];
+            return NOTES_ORDER.indexOf(cleanName);
+        }
+
+        function generateScale(root, scaleType) {
+            const intervals = SCALES[scaleType];
+            const startIdx = getNoteIndex(root);
+            
+            let scale = [];
+            let octave = 4;
+            
+            // Adjust octave for starting low
+            if (["G", "F#", "F", "E"].includes(root)) octave = 3; 
+            if (["A", "Ab", "Bb", "B"].includes(root)) octave = 3;
+            if (root === "C" || root === "C#" || root === "Db") octave = 4;
+
+            intervals.forEach(interval => {
+                let currentIdx = (startIdx + interval);
+                let currentOctave = octave + Math.floor(currentIdx / 12);
+                let rawName = NOTES_ORDER[currentIdx % 12];
+                
+                let displayName = rawName;
+                const flatKeys = ["F", "Bb", "Eb", "Ab", "Db", "Gb"];
+                if (flatKeys.includes(root)) {
+                    const map = {"C#":"Db", "D#":"Eb", "F#":"Gb", "G#":"Ab", "A#":"Bb"};
+                    if (map[rawName]) displayName = map[rawName];
+                }
+
+                let noteId = displayName + currentOctave;
+                
+                // Fallback for enhancers
+                if (!TRUMPET_DATA[noteId]) {
+                    const enharmonics = {"C#":"Db", "Db":"C#", "D#":"Eb", "Eb":"D#", "F#":"Gb", "Gb":"F#", "G#":"Ab", "Ab":"G#", "A#":"Bb", "Bb":"A#"};
+                    if (TRUMPET_DATA[enharmonics[displayName]+currentOctave]) {
+                        noteId = enharmonics[displayName]+currentOctave;
+                    }
+                }
+                
+                if (TRUMPET_DATA[noteId]) {
+                    scale.push({
+                        id: noteId,
+                        display: displayName,
+                        octave: currentOctave,
+                        data: TRUMPET_DATA[noteId]
+                    });
+                }
+            });
+            return scale;
+        }
+
+        // --- DRAWING ---
+        function drawStaff(scaleNotes) {
+            const container = document.getElementById('sheetContainer');
+            container.innerHTML = '';
+            
+            const noteWidth = 50;
+            const startX = 60;
+            // Dynamic width
+            const width = Math.max(container.clientWidth, startX + (scaleNotes.length * noteWidth) + 30);
+            const height = 160;
+            const stepY = 8;
+            const refY = 110; // E4 position
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "staff");
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+            svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+            // Staff Lines
+            for (let i = 0; i < 5; i++) {
+                const y = refY - (i * 2 * stepY);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 10);
+                line.setAttribute("x2", width - 10);
+                line.setAttribute("y1", y);
+                line.setAttribute("y2", y);
+                line.setAttribute("stroke", "#000");
+                line.setAttribute("stroke-width", "1");
+                svg.appendChild(line);
+            }
+
+            // Clef
+            const clefText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            clefText.setAttribute("x", 10);
+            clefText.setAttribute("y", refY + 4);
+            clefText.setAttribute("font-size", "70");
+            clefText.textContent = "𝄞"; 
+            svg.appendChild(clefText);
+
+            scaleNotes.forEach((noteObj, index) => {
+                const cx = startX + (index * noteWidth);
+                const cy = refY - (noteObj.data.pos * stepY);
+                
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", `note-group ${index === activeIndex ? 'active' : ''}`);
+                g.setAttribute("onclick", `selectNote(${index})`);
+                
+                // Invisible Hit Box for easier tapping
+                const hitBox = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                hitBox.setAttribute("x", cx - 20);
+                hitBox.setAttribute("y", 0);
+                hitBox.setAttribute("width", 40);
+                hitBox.setAttribute("height", height);
+                g.appendChild(hitBox);
+
+                // Ledgers
+                if (noteObj.data.pos <= -2) drawLedger(g, cx, refY - (-2 * stepY));
+                if (noteObj.data.pos <= -4) drawLedger(g, cx, refY - (-4 * stepY));
+                if (noteObj.data.pos <= -6) drawLedger(g, cx, refY - (-6 * stepY));
+                if (noteObj.data.pos >= 10) drawLedger(g, cx, refY - (10 * stepY));
+                if (noteObj.data.pos >= 12) drawLedger(g, cx, refY - (12 * stepY));
+
+                // Stem
+                const stemHeight = 30;
+                const stemDir = noteObj.data.pos >= 4 ? -1 : 1; 
+                const stemX = stemDir === 1 ? cx + 5 : cx - 5;
+                const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                stem.setAttribute("x1", stemX);
+                stem.setAttribute("x2", stemX);
+                stem.setAttribute("y1", cy);
+                stem.setAttribute("y2", cy - (stemHeight * stemDir));
+                stem.setAttribute("stroke", "black");
+                stem.setAttribute("stroke-width", "2");
+                g.appendChild(stem);
+
+                // Head
+                const ellipse = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                ellipse.setAttribute("cx", cx);
+                ellipse.setAttribute("cy", cy);
+                ellipse.setAttribute("rx", 6.5);
+                ellipse.setAttribute("ry", 4.5);
+                ellipse.setAttribute("transform", `rotate(-20 ${cx} ${cy})`);
+                ellipse.setAttribute("fill", "black");
+                g.appendChild(ellipse);
+
+                // Accidental
+                if (noteObj.data.acc) {
+                    const accText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    accText.setAttribute("x", cx - 18);
+                    accText.setAttribute("y", cy + 5);
+                    accText.setAttribute("font-size", "18");
+                    accText.textContent = noteObj.data.acc === "#" ? "♯" : "♭";
+                    g.appendChild(accText);
+                }
+
+                // Label
+                const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                label.setAttribute("x", cx);
+                label.setAttribute("y", height - 5);
+                label.setAttribute("text-anchor", "middle");
+                label.setAttribute("font-size", "12");
+                label.setAttribute("fill", "#666");
+                label.textContent = noteObj.display;
+                g.appendChild(label);
+
+                svg.appendChild(g);
+            });
+
+            container.appendChild(svg);
+            
+            // Auto scroll active note into view
+            scrollToActive(scaleNotes.length);
+        }
+
+        function drawLedger(group, cx, y) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", cx - 10);
+            line.setAttribute("x2", cx + 10);
+            line.setAttribute("y1", y);
+            line.setAttribute("y2", y);
+            line.setAttribute("stroke", "black");
+            line.setAttribute("stroke-width", "1");
+            group.appendChild(line);
+        }
+
+        // --- UPDATE UI ---
+        function updateUI() {
+            if (currentScaleNotes.length === 0) return;
+            const note = currentScaleNotes[activeIndex];
+            const fingering = note.data.fingering;
+
+            // Valves
+            document.getElementById('valve1').className = `valve ${fingering[0] ? 'pressed' : ''}`;
+            document.getElementById('valve2').className = `valve ${fingering[1] ? 'pressed' : ''}`;
+            document.getElementById('valve3').className = `valve ${fingering[2] ? 'pressed' : ''}`;
+
+            // Text
+            document.getElementById('currentNoteDisplay').textContent = note.display;
+            
+            const pressed = [];
+            if(fingering[0]) pressed.push("1");
+            if(fingering[1]) pressed.push("2");
+            if(fingering[2]) pressed.push("3");
+            document.getElementById('fingeringText').textContent = pressed.length > 0 ? pressed.join("-") : "Open";
+
+            // Sheet Highlights
+            document.querySelectorAll('.note-group').forEach((el, idx) => {
+                if(idx === activeIndex) el.classList.add('active');
+                else el.classList.remove('active');
+            });
+
+            // Buttons
+            document.getElementById('prevBtn').disabled = activeIndex === 0;
+            document.getElementById('nextBtn').disabled = activeIndex === currentScaleNotes.length - 1;
+            
+            // Scroll sheet if needed
+            scrollToActive(currentScaleNotes.length);
+        }
+
+        function scrollToActive(totalNotes) {
+            const container = document.getElementById('sheetContainer');
+            const noteWidth = 50; 
+            const centerPos = (container.clientWidth / 2) - (noteWidth / 2);
+            // Calculate position of active note
+            const activePos = 60 + (activeIndex * noteWidth);
+            
+            container.scrollTo({
+                left: activePos - centerPos,
+                behavior: 'smooth'
+            });
+        }
+
+        function loadScale() {
+            const root = document.getElementById('rootSelect').value;
+            const type = document.getElementById('scaleSelect').value;
+            currentScaleNotes = generateScale(root, type);
+            activeIndex = 0;
+            drawStaff(currentScaleNotes);
+            updateUI();
+        }
+
+        function selectNote(index) {
+            activeIndex = index;
+            updateUI();
+        }
+
+        // Events
+        document.getElementById('rootSelect').addEventListener('change', loadScale);
+        document.getElementById('scaleSelect').addEventListener('change', loadScale);
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if(activeIndex > 0) { activeIndex--; updateUI(); }
+        });
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if(activeIndex < currentScaleNotes.length - 1) { activeIndex++; updateUI(); }
+        });
+        document.addEventListener('keydown', (e) => {
+            if(e.key === "ArrowRight" && activeIndex < currentScaleNotes.length - 1) { activeIndex++; updateUI(); }
+            if(e.key === "ArrowLeft" && activeIndex > 0) { activeIndex--; updateUI(); }
+        });
+
+        // Init
+        loadScale();
+
+    </script>
+</body>
+</html>
