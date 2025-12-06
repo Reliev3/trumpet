@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stamp Method Basics</title>
+    <style>
+        :root {
+            --primary: #2563eb;       /* Standard Note */
+            --accent: #f97316;        /* Bend Note */
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --valve-gradient: radial-gradient(circle at 30% 30%, #fff, #e5e7eb);
+            --valve-pressed: radial-gradient(circle at 30% 30%, #4b5563, #1f2937);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.25rem; margin: 0; color: var(--text); }
+        .subtitle { font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem; }
+
+        .controls {
+            margin: 1rem auto 0;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+
+        main {
+            padding: 1rem;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Visualization Area */
+        .instruction-badge {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .instruction-badge.bend { background: var(--accent); color: white; }
+        .instruction-badge.true { background: var(--primary); color: white; }
+
+        .note-display {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .fingering-code {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+            font-family: monospace;
+        }
+
+        .trumpet-deck {
+            position: relative;
+            background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 15px;
+        }
+        
+        .trumpet-deck::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: -10px; right: -10px; height: 12px;
+            background: inherit; transform: translateY(-50%); z-index: 0;
+            border-radius: 6px;
+        }
+
+        .valve-wrapper {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .valve {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: var(--valve-gradient);
+            border: 4px solid #9ca3af;
+            box-shadow: inset 0 -4px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .valve.pressed {
+            background: var(--valve-pressed);
+            border-color: #374151;
+            transform: scale(0.95);
+        }
+
+        /* Sheet Music */
+        .sheet-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        
+        /* Note Styling in SVG */
+        .note-group { cursor: pointer; transition: opacity 0.2s; }
+        .note-group rect { fill: transparent; }
+        .note-group.inactive { opacity: 0.4; }
+        
+        /* Standard Note */
+        .note-group.type-play ellipse, .note-group.type-true ellipse { fill: black; }
+        .note-group.type-play.active ellipse, .note-group.type-true.active ellipse { fill: var(--primary); }
+        
+        /* Bend Note */
+        .note-group.type-bend ellipse { fill: var(--accent); }
+        .note-group.type-bend text.bend-arrow { fill: var(--accent); font-weight: bold; }
+
+        /* Footer Nav */
+        .nav-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; padding: 1rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white; border: none; padding: 1rem;
+            border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .btn:active { transform: translateY(1px); }
+        .btn:disabled { background-color: #d1d5db; color: #9ca3af; }
+
+        @media (min-width: 768px) {
+            main { flex-direction: row; align-items: flex-start; }
+            .nav-footer { position: static; background: transparent; box-shadow: none; padding: 0; margin-top: 1rem; }
+            .fingering-section { flex: 1; order: 2; }
+            .sheet-section { flex: 2; order: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Stamp Warm-ups</h1>
+        <div class="subtitle">Center the tone & connect the registers</div>
+        <div class="controls">
+            <select id="exerciseSelect">
+                <option value="1a">1A. Basic Warm-up (G Major)</option>
+                <option value="1b">1B. Basic Warm-up (C Major)</option>
+                <option value="pedal">2. Pedal Tone Extension</option>
+            </select>
+        </div>
+    </header>
+
+    <main>
+        <div class="card fingering-section">
+            <div id="instructionBadge" class="instruction-badge">Normal</div>
+            <div class="note-display" id="currentNoteDisplay">G</div>
+            <div class="fingering-code" id="fingeringText">0-0-0</div>
+            
+            <div class="trumpet-deck">
+                <div class="valve-wrapper"><div class="valve" id="valve1"></div></div>
+                <div class="valve-wrapper"><div class="valve" id="valve2"></div></div>
+                <div class="valve-wrapper"><div class="valve" id="valve3"></div></div>
+            </div>
+
+            <div class="nav-footer desktop-only-hook">
+                <button class="btn" id="prevBtn">←</button>
+                <button class="btn" id="nextBtn">→</button>
+            </div>
+        </div>
+
+        <div class="card sheet-section">
+            <div class="sheet-wrapper" id="sheetContainer"></div>
+        </div>
+    </main>
+
+    <script>
+        // --- STAMP EXERCISE DATA ---
+        // type: 'play' (start note), 'bend' (lip down), 'true' (finger correctly)
+        // pos: 0 is E4. Each step is 1 semi-tone of line height visually (approx)
+        
+        const EXERCISES = {
+            "1a": [
+                { note: "G4",  display: "G",   pos: 2,  fingering: [0,0,0], type: "play" },
+                { note: "F#4", display: "F#",  pos: 1,  fingering: [0,0,0], type: "bend", acc: "#" }, // Lip bend
+                { note: "F#4", display: "F#",  pos: 1,  fingering: [0,2,0], type: "true", acc: "#" }, // True fingering
+                { note: "G4",  display: "G",   pos: 2,  fingering: [0,0,0], type: "play" },
+                
+                { note: "F#4", display: "F#",  pos: 1,  fingering: [0,2,0], type: "play", acc: "#" },
+                { note: "F4",  display: "F",   pos: 1,  fingering: [0,2,0], type: "bend", acc: "nat" }, // Lip bend
+                { note: "F4",  display: "F",   pos: 1,  fingering: [1,0,0], type: "true", acc: "nat" },
+                { note: "F#4", display: "F#",  pos: 1,  fingering: [0,2,0], type: "play", acc: "#" },
+
+                { note: "F4",  display: "F",   pos: 1,  fingering: [1,0,0], type: "play" },
+                { note: "E4",  display: "E",   pos: 0,  fingering: [1,0,0], type: "bend" },
+                { note: "E4",  display: "E",   pos: 0,  fingering: [1,2,0], type: "true" },
+                { note: "F4",  display: "F",   pos: 1,  fingering: [1,0,0], type: "play" }
+            ],
+            "1b": [
+                { note: "C5",  display: "C",   pos: 5,  fingering: [0,0,0], type: "play" },
+                { note: "B4",  display: "B",   pos: 4,  fingering: [0,0,0], type: "bend" },
+                { note: "B4",  display: "B",   pos: 4,  fingering: [0,2,0], type: "true" },
+                { note: "C5",  display: "C",   pos: 5,  fingering: [0,0,0], type: "play" },
+
+                { note: "B4",  display: "B",   pos: 4,  fingering: [0,2,0], type: "play" },
+                { note: "Bb4", display: "Bb",  pos: 4,  fingering: [0,2,0], type: "bend", acc: "b" },
+                { note: "Bb4", display: "Bb",  pos: 4,  fingering: [1,0,0], type: "true", acc: "b" },
+                { note: "B4",  display: "B",   pos: 4,  fingering: [0,2,0], type: "play" }
+            ],
+            "pedal": [
+                { note: "C4",  display: "C",   pos: -2, fingering: [0,0,0], type: "play" },
+                { note: "B3",  display: "B",   pos: -3, fingering: [0,2,0], type: "play" },
+                { note: "Bb3", display: "Bb",  pos: -3, fingering: [1,0,0], type: "play", acc: "b" },
+                { note: "A3",  display: "A",   pos: -4, fingering: [1,2,0], type: "play" },
+                { note: "Ab3", display: "Ab",  pos: -4, fingering: [0,2,3], type: "play", acc: "b" },
+                { note: "G3",  display: "G",   pos: -5, fingering: [1,0,1], type: "play" }
+            ]
+        };
+
+        // --- STATE ---
+        let currentSequence = [];
+        let activeIndex = 0;
+
+        function updateUI() {
+            const step = currentSequence[activeIndex];
+            
+            // Text Updates
+            document.getElementById('currentNoteDisplay').textContent = step.display;
+            
+            // Badge Logic
+            const badge = document.getElementById('instructionBadge');
+            badge.className = 'instruction-badge';
+            if(step.type === 'bend') {
+                badge.textContent = "▼ Lip Bend (Don't finger)";
+                badge.classList.add('bend');
+            } else if (step.type === 'true') {
+                badge.textContent = "★ True Pitch";
+                badge.classList.add('true');
+            } else {
+                badge.textContent = "Normal Tone";
+            }
+
+            // Fingering Display
+            const f = step.fingering;
+            document.getElementById('fingeringText').textContent = 
+                `${f[0] ? '1' : '0'} - ${f[1] ? '2' : '0'} - ${f[2] ? '3' : '0'}`;
+
+            // Valve Animation
+            document.getElementById('valve1').className = `valve ${f[0] ? 'pressed' : ''}`;
+            document.getElementById('valve2').className = `valve ${f[1] ? 'pressed' : ''}`;
+            document.getElementById('valve3').className = `valve ${f[2] ? 'pressed' : ''}`;
+
+            // Sheet Music Highlight
+            document.querySelectorAll('.note-group').forEach((el, idx) => {
+                if(idx === activeIndex) {
+                    el.classList.add('active');
+                    el.classList.remove('inactive');
+                } else {
+                    el.classList.remove('active');
+                    el.classList.add('inactive');
+                }
+            });
+
+            // Buttons
+            document.getElementById('prevBtn').disabled = activeIndex === 0;
+            document.getElementById('nextBtn').disabled = activeIndex === currentSequence.length - 1;
+
+            scrollToActive();
+        }
+
+        function drawStaff(notes) {
+            const container = document.getElementById('sheetContainer');
+            container.innerHTML = '';
+            
+            const noteWidth = 60;
+            const width = Math.max(container.clientWidth, (notes.length * noteWidth) + 60);
+            const height = 150;
+            const stepY = 8;
+            const refY = 100; // E4 position
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+
+            // Staff Lines
+            for (let i = 0; i < 5; i++) {
+                const y = refY - (i * 2 * stepY);
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", 10); line.setAttribute("x2", width - 10);
+                line.setAttribute("y1", y); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "#9ca3af");
+                svg.appendChild(line);
+            }
+
+            // Draw Notes
+            notes.forEach((step, index) => {
+                const cx = 50 + (index * noteWidth);
+                const cy = refY - (step.pos * stepY);
+                
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("class", `note-group type-${step.type}`);
+                g.setAttribute("onclick", `selectNote(${index})`);
+
+                // Ledger Lines
+                if (step.pos <= -2) drawLedger(g, cx, refY - (-2 * stepY));
+                if (step.pos <= -4) drawLedger(g, cx, refY - (-4 * stepY));
+                if (step.pos >= 10) drawLedger(g, cx, refY - (10 * stepY));
+
+                // Stem
+                const stemDir = step.pos >= 4 ? -1 : 1;
+                const stemLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                stemLine.setAttribute("x1", stemDir === 1 ? cx + 5 : cx - 5);
+                stemLine.setAttribute("x2", stemDir === 1 ? cx + 5 : cx - 5);
+                stemLine.setAttribute("y1", cy);
+                stemLine.setAttribute("y2", cy - (35 * stemDir));
+                stemLine.setAttribute("stroke", "black");
+                stemLine.setAttribute("stroke-width", "2");
+                g.appendChild(stemLine);
+
+                // Note Head
+                const head = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                head.setAttribute("cx", cx); head.setAttribute("cy", cy);
+                head.setAttribute("rx", 7); head.setAttribute("ry", 5);
+                head.setAttribute("transform", `rotate(-20 ${cx} ${cy})`);
+                g.appendChild(head);
+
+                // Accidental
+                if (step.acc) {
+                    const accText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    accText.setAttribute("x", cx - 20);
+                    accText.setAttribute("y", cy + 5);
+                    accText.setAttribute("font-size", "18");
+                    if(step.acc === '#') accText.textContent = "♯";
+                    if(step.acc === 'b') accText.textContent = "♭";
+                    if(step.acc === 'nat') accText.textContent = "♮";
+                    g.appendChild(accText);
+                }
+
+                // Bend Indicator
+                if (step.type === 'bend') {
+                    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                    arrow.setAttribute("class", "bend-arrow");
+                    arrow.setAttribute("x", cx);
+                    arrow.setAttribute("y", cy + 25);
+                    arrow.setAttribute("text-anchor", "middle");
+                    arrow.setAttribute("font-size", "12");
+                    arrow.textContent = "▼";
+                    g.appendChild(arrow);
+                }
+
+                svg.appendChild(g);
+            });
+
+            container.appendChild(svg);
+        }
+
+        function drawLedger(group, cx, y) {
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", cx - 12); line.setAttribute("x2", cx + 12);
+            line.setAttribute("y1", y); line.setAttribute("y2", y);
+            line.setAttribute("stroke", "black");
+            group.appendChild(line);
+        }
+
+        function scrollToActive() {
+            const container = document.getElementById('sheetContainer');
+            const noteWidth = 60;
+            const centerPos = (container.clientWidth / 2) - (noteWidth / 2);
+            const activePos = 50 + (activeIndex * noteWidth);
+            container.scrollTo({ left: activePos - centerPos, behavior: 'smooth' });
+        }
+
+        function loadExercise() {
+            const val = document.getElementById('exerciseSelect').value;
+            currentSequence = EXERCISES[val];
+            activeIndex = 0;
+            drawStaff(currentSequence);
+            updateUI();
+        }
+
+        function selectNote(index) {
+            activeIndex = index;
+            updateUI();
+        }
+
+        // --- EVENTS ---
+        document.getElementById('exerciseSelect').addEventListener('change', loadExercise);
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if(activeIndex > 0) { activeIndex--; updateUI(); }
+        });
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if(activeIndex < currentSequence.length - 1) { activeIndex++; updateUI(); }
+        });
+
+        // Initialize
+        loadExercise();
+
+    </script>
+</body>
+</html>
